@@ -6,248 +6,188 @@ import csv
 import random
 from os.path import join
 from statistics import mean
-
 import yaml
 from psychopy import visual, event, logging, gui, core
-
 from misc.screen_misc import get_screen_res, get_frame_rate
 from itertools import combinations_with_replacement, product
 
+ID=''
+ROZDZIELCZOSC = list(get_screen_res().values())
+WYNIKI = []
 
 @atexit.register
-def save_beh_results():
-    """
-    Save results of experiment. Decorated with @atexit in order to make sure, that intermediate
-    results will be saved even if interpreter will broke.
-    """
-    with open(join('results', PART_ID + '_' + str(random.choice(range(100, 1000))) + '_beh.csv'), 'w', encoding='utf-8') as beh_file:
-        beh_writer = csv.writer(beh_file)
-        beh_writer.writerows(RESULTS)
+def zapis_wynik():
+    with open(join('./wyniki/wynik_' + ID + '.csv'), 'w', encoding='utf-8') as plik:
+        zapis = csv.writer(plik)
+        zapis.writerows(WYNIKI)
     logging.flush()
 
-
-def show_image(win, file_name, size, key='f7'):
-    """
-    Show instructions in a form of an image.
-    """
-    image = visual.ImageStim(win=win, image=file_name,
-                             interpolate=True, size=size)
-    image.draw()
-    win.flip()
-    clicked = event.waitKeys(keyList=[key, 'return', 'space'])
-    if clicked == [key]:
-        logging.critical(
-            'Experiment finished by user! {} pressed.'.format(key[0]))
-        exit(0)
-    win.flip()
-
-
-def read_text_from_file(file_name, insert=''):
-    """
-    Method that read message from text file, and optionally add some
-    dynamically generated info.
-    :param file_name: Name of file to read
-    :param insert:
-    :return: message
-    """
-    if not isinstance(file_name, str):
-        logging.error('Problem with file reading, filename must be a string')
-        raise TypeError('file_name must be a string')
-    msg = list()
-    with codecs.open(file_name, encoding='utf-8', mode='r') as data_file:
-        for line in data_file:
-            if not line.startswith('#'):  # if not commented line
-                if line.startswith('<--insert-->'):
-                    if insert:
-                        msg.append(insert)
-                else:
-                    msg.append(line)
-    return ''.join(msg)
-
-
-def check_exit(key='f7'):
-    """
-    Check (during procedure) if experimentator doesn't want to terminate.
-    """
-    stop = event.getKeys(keyList=[key])
+def wyjscie(konfiguracja):
+    stop = event.getKeys(keyList=konfiguracja['PRZYCISK_WYJSCIA'])
     if stop:
-        abort_with_error(
-            'Experiment finished by user! {} pressed.'.format(key))
+        blad('Eksperyment przerwany przez uzytkownika! Nacisnieto {}.'.format(konfiguracja['PRZYCISK_WYJSCIA']))
 
+def blad(blad):
+    logging.critical(blad)
+    raise Exception(blad)
 
-def show_info(win, file_name, insert=''):
-    """
-    Clear way to show info message into screen.
-    :param win:
-    :return:
-    """
-    msg = read_text_from_file(file_name, insert=insert)
-    msg = visual.TextStim(win, color='black', text=msg,
-                          height=20, wrapWidth=SCREEN_RES['width'])
-    msg.draw()
-    win.flip()
-    key = event.waitKeys(keyList=['f7', 'return', 'space', 'left', 'right'])
-    if key == ['f7']:
-        abort_with_error(
-            'Experiment finished by user on info screen! F7 pressed.')
-    win.flip()
+def wczytaj_tekst(nazwa_pliku, insert=''):
+    nazwa_pliku = join('./informacje/' + nazwa_pliku + '.txt')
+    if not isinstance(nazwa_pliku, str):
+        logging.error('Nazwa pliku nie jest tekstem.')
+        raise TypeError('Nazwa pliku musi byc tekstem.')
+    tekst = []
+    with codecs.open(nazwa_pliku, encoding='utf-8', mode='r') as plik:
+        for wiersz in plik:
+            if not wiersz.startswith('#'):
+                if wiersz.startswith('<--insert-->'):
+                    if insert:
+                        tekst.append(insert)
+                else:
+                    tekst.append(wiersz)
+    return tekst
 
-
-def abort_with_error(err):
-    """
-    Call if an error occured.
-    """
-    logging.critical(err)
-    raise Exception(err)
-
-
-# GLOBALS
-
-RESULTS = list()  # list in which data will be colected
-RESULTS.append(['PART_ID', 'Trial_no', 'Reaction time', 'Correctness', '...']  # ... Results header
+def pokaz_tekst(tekst, okno, konfiguracja):
+    napis = visual.TextStim(win=okno, height=ROZDZIELCZOSC[1]*konfiguracja['ROZMAR_TEKSTU'], wrapWidth=ROZDZIELCZOSC[0])
+    print(type(tekst))
+    print(type(tekst) is list)
+    if type(tekst) is list:
+        for i, wiersz in enumerate(tekst):
+            napis.bold = False
+            napis.color = konfiguracja['KOLOR_TEKSTU']
+            if wiersz[0] == '/':
+                if wiersz[1] == 'b':
+                    napis.bold = True
+                elif wiersz[1] == 'z':
+                    napis.color = '#00FF00'
+                elif wiersz[1] == 'c':
+                    napis.color = '#FF0000'
+                elif wiersz[1] == 'n':
+                    napis.color = '#0000FF'
+                elif wiersz[1] == 'k':
+                    napis.color = '#FFFF00'
+                wiersz = wiersz[2:]
+            napis.text = wiersz
+            napis.pos = [0,(len(tekst)/2 - (i+1)) * ROZDZIELCZOSC[1]*konfiguracja['ROZMAR_TEKSTU']]
+            napis.draw()
+    else:
+        napis.text = tekst
+        napis.bold = False
+        napis.color = konfiguracja['KOLOR_TEKSTU']
+        napis.draw()
+    event.clearEvents()
+    okno.flip()
+    kontynuacja = []
+    while kontynuacja == []:
+        wyjscie(konfiguracja)
+        kontynuacja = event.getKeys(keyList=konfiguracja['PRZYCISK_KONTYNUACJI'])
+    return
 
 def main():
-    global PART_ID  # PART_ID is used in case of error on @atexit, that's why it must be global
+    global ID
 
-    # === Dialog popup ===
-    info={'IDENTYFIKATOR': '', u'P\u0141EC': ['M', "K"], 'WIEK': '20'}
-    dictDlg=gui.DlgFromDict(
-        dictionary=info, title='Experiment title, fill by your name!')
-    if not dictDlg.OK:
-        abort_with_error('Info dialog terminated.')
+    info = {'IDENTYFIKATOR': '', u'P\u0141E\u0106': [u'M\u0119\u017Cczyzna', 'Kobieta', 'Inna'], 'WIEK': '20'}
+    dane = gui.DlgFromDict(dictionary=info, title='Stroop:)')
+    if not dane.OK:
+        blad('Blad w oknie dialogowym')
 
-    clock=core.Clock()
-    # load config, all params are there
-    conf=yaml.load(open('config.yaml', encoding='utf-8'))
+    konfiguracja = yaml.safe_load(open('config.yaml', encoding='utf-8'))
+    okno = visual.Window(size=ROZDZIELCZOSC, fullscr=False, monitor='testMonitor', units='pix',screen=0, color=konfiguracja['KOLOR_TLA'])
+    event.Mouse(visible=False, newPos=None, win=okno)
+    zegar = core.Clock()
 
-    # === Scene init ===
-    win=visual.Window(list(SCREEN_RES.values()), fullscr=False, monitor='testMonitor', units='pix',
-                                       screen=0, color=conf['BACKGROUND_COLOR'])
-    event.Mouse(visible=False, newPos=None, win=win)  # Make mouse invisible
-    FRAME_RATE=get_frame_rate(win)
+    ID = info['IDENTYFIKATOR'] + '_' + info[u'P\u0141E\u0106'] + '_' + info['WIEK']
+    WYNIKI.append(konfiguracja['NAGLOWKI_TABELI_WYNIKOW'])
+    logging.LogFile(join('wyniki', 'log_' + ID + '.log'), level=logging.INFO)  # errors logging
+    ODSWIEZANIE = get_frame_rate(okno)
+    logging.info('ODSWIEZANIE: {}'.format(ODSWIEZANIE))
+    logging.info('ROZDZIELCZOSC: {}'.format(ROZDZIELCZOSC))
+    procedura(zegar, okno, konfiguracja)
+    zapisz_wyniki()
+    return
 
-    # check if a detected frame rate is consistent with a frame rate for witch experiment was designed
-    # important only if milisecond precision design is used
-    if FRAME_RATE != conf['FRAME_RATE']:
-        dlg=gui.Dlg(title="Critical error")
-        dlg.addText(
-            'Wrong no of frames detected: {}. Experiment terminated.'.format(FRAME_RATE))
-        dlg.show()
-        return None
-
-    PART_ID=info['IDENTYFIKATOR'] + info[u'P\u0141EC'] + info['WIEK']
-    logging.LogFile(join('results', PART_ID + '.log'),
-                    level=logging.INFO)  # errors logging
-    logging.info('FRAME RATE: {}'.format(FRAME_RATE))
-    logging.info('SCREEN RES: {}'.format(SCREEN_RES.values()))
-
-    # === Prepare stimulus here ===
-    #
-    # Examples:
-    # fix_cross = visual.TextStim(win, text='+', height=100, color=conf['FIX_CROSS_COLOR'])
-    # que = visual.Circle(win, radius=conf['QUE_RADIUS'], fillColor=conf['QUE_COLOR'], lineColor=conf['QUE_COLOR'])
-    # stim = visual.TextStim(win, text='', height=conf['STIM_SIZE'], color=conf['STIM_COLOR'])
-    # mask = visual.ImageStim(win, image='mask4.png', size=(conf['STIM_SIZE'], conf['STIM_SIZE']))
-
-    # === Training ===
-
-    show_info(win, join('.', 'messages', 'hello.txt'))
-
-    trial_no += 1
-
-    show_info(win, join('.', 'messages', 'before_training.txt'))
-    csi_list=[conf['TRAINING_CSI']] * conf['NO_TRAINING_TRIALS'][1]
-    for csi in csi_list:
-        key_pressed, rt, ...=run_trial(win, conf, ...)
-        corr=...
-        RESULTS.append([PART_ID, trial_no, 'training', ...])
-
-        # it's often good presenting feedback in trening trials
-        feedb="Poprawnie" if corr else "Niepoprawnie"
-        feedb=visual.TextStim(win, text=feedb, height=50,
-                              color=conf['FIX_CROSS_COLOR'])
-        feedb.draw()
-        win.flip()
-        core.wait(1)
-        win.flip()
-
-        trial_no += 1
-        # === Experiment ===
-
-    show_info(win, join('.', 'messages', 'before_experiment.txt'))
-
-    for block_no in range(conf['NO_BLOCKS']):
-        for _ in range(conf['Trials in block'])
-            key_pressed, rt, ...=run_trial(win, conf, ...)
-            RESULTS.append([PART_ID, block_no, trial_no, 'experiment', ...])
-            trial_no += 1
-
-        show_image(win, os.path.join('.', 'images', 'break.jpg'),
-                   size=(SCREEN_RES['width'], SCREEN_RES['height']))
-
-        # === Cleaning time ===
-    save_beh_results()
+def procedura(zegar, okno, konfiguracja):
+    pokaz_tekst(wczytaj_tekst('Instrukcja'), okno, konfiguracja)
+    for x in range(konfiguracja['LICZBA_POWTORZEN_TRENINGU']):
+        test(zegar, okno, False, konfiguracja)
+    if konfiguracja['LICZBA_POWTORZEN_TRENINGU'] > 0:
+        pokaz_tekst(wczytaj_tekst('Przypomnienie'), okno, konfiguracja)
+    for y in range(konfiguracja['LICZBA_POWTORZEN_EKSPERYMENTU']):
+        wyjscie(konfiguracja)
+        test(zegar, okno, True, konfiguracja)
+    pokaz_tekst(wczytaj_tekst('Koniec'), okno, konfiguracja)
     logging.flush()
-    show_info(win, join('.', 'messages', 'end.txt'))
-    win.close()
+    return
 
+def test(zegar, okno, eksperyment, konfiguracja):
+    if eksperyment:
+        pokaz_tekst("Eksperyment", okno, konfiguracja)
+        proby = konfiguracja['LICZBA_PROB_W_EKSPERYMENCIE']
+    else:
+        pokaz_tekst("Trening", okno, konfiguracja)
+        proby = konfiguracja['LICZBA_PROB_W_TRENINGU']
+        popr1 = visual.Rect(win=okno, fillColor=konfiguracja['KOLOR_PROSTOKATA'], lineColor=konfiguracja['KOLOR_KRAWEDZI_PROSTOKATA'], size=[x * konfiguracja['ROZMIAR_PROSTOKATA'] for x in ROZDZIELCZOSC], lineWidth=3)
+        popr2 = visual.TextStim(win=okno, height=ROZDZIELCZOSC[1]*konfiguracja['ROZMAR_TEKSTU'], color=konfiguracja['KOLOR_TEKSTU'])
 
-def run_trial(win, ...):
-    """
-    Prepare and present single trial of procedure.
-    Input (params) should consist all data need for presenting stimuli.
-    If some stimulus (eg. text, label, button) will be presented across many trials.
-    Should be prepared outside this function and passed for .draw() or .setAutoDraw().
+    tekst = visual.TextStim(win=okno, height=ROZDZIELCZOSC[1] * konfiguracja['ROZMAR_BODZCA'])
+    for i in range(proby):
+        wyjscie(konfiguracja)
+        zgodnosc, reakcja, slowo, kolor, poprawnosc, czas = proba(tekst, zegar, okno, konfiguracja)
+        WYNIKI.append([eksperyment, i+1, zgodnosc, reakcja, slowo, kolor, poprawnosc, czas])
+        if not eksperyment and poprawnosc:
+            popr1.draw()
+            popr2.setText(text=konfiguracja['POPRAWNOSC'][1])
+            popr2.draw()
+            okno.flip()
+            core.wait(konfiguracja['PRZERWA'])
+        if not eksperyment and not poprawnosc:
+            popr1.draw()
+            popr2.setText(text=konfiguracja['POPRAWNOSC'][0])
+            popr2.draw()
+            okno.flip()
+            core.wait(konfiguracja['PRZERWA'])
 
-    All behavioral data (reaction time, answer, etc. should be returned from this function)
-    """
+        okno.flip()
+        core.wait(konfiguracja['PRZERWA'])
 
-    # === Prepare trial-related stimulus ===
-    # Randomise if needed
-    #
-    # Examples:
-    #
-    # que_pos = random.choice([-conf['STIM_SHIFT'], conf['STIM_SHIFT']])
-    # stim.text = random.choice(conf['STIM_LETTERS'])
-    #
+    pokaz_tekst("Koniec sesji.\nWci\u015Bnij spacj\u0119 \u017Ceby kontynuowa\u0107.", okno, konfiguracja)
+    return
 
-    # === Start pre-trial  stuff (Fixation cross etc.)===
+def proba(tekst, zegar, okno, konfiguracja):
+    bodz = bodziec(konfiguracja)
 
-    # for _ in range(conf['FIX_CROSS_TIME']):
-    #    fix_cross.draw()
-    #    win.flip()
+    tekst.color = konfiguracja['KOLOR_PUNKTU_FIKSACJI']
+    tekst.text = konfiguracja['RODZAJ_PUNKTU_FIKSACJI']
+    tekst.draw()
+    okno.flip()
+    core.wait(konfiguracja['CZAS_WYSWIETLANIA_PUNKTU_FIKSACJI'])
 
-    # === Start trial ===
-    # This part is time-crucial. All stims must be already prepared.
-    # Only .draw() .flip() and reaction related stuff goes there.
+    bodz.wyswietl(tekst, zegar, okno)
+
+    reakcja = []
     event.clearEvents()
-    # make sure, that clock will be reset exactly when stimuli will be drawn
-    win.callOnFlip(clock.reset)
-
-    for _ in range(conf['STIM_TIME']):  # present stimuli
-        reaction=event.getKeys(keyList=list(
-            conf['REACTION_KEYS']), timeStamped=clock)
-        if reaction:  # break if any button was pressed
+    while reakcja == []:
+        if zegar.getTime() > konfiguracja['CZAS_NA_REAKCJE']:
+            reakcja = 'Uplynal czas reakcji'
             break
-        stim.draw()
-        win.flip()
+        reakcja = event.getKeys(keyList=list(element['przycisk'] for element in konfiguracja['KOLORY'][:-1]))
+        wyjscie(konfiguracja)
+    czas = zegar.getTime()
+    poprawnosc = [next(kol for kol in konfiguracja['KOLORY'] if kol['kolor'] == bodz.kolor)['przycisk']] == reakcja
+    return bodz.zgodnosc, reakcja, bodz.napis, bodz.kolor, poprawnosc, czas
 
-    if not reaction:  # no reaction during stim time, allow to answer after that
-        question_frame.draw()
-        question_label.draw()
-        win.flip()
-        reaction=event.waitKeys(keyList=list(
-            conf['REACTION_KEYS']), maxWait=conf['REACTION_TIME'], timeStamped=clock)
-    # === Trial ended, prepare data for send  ===
-    if reaction:
-        key_pressed, rt=reaction[0]
-    else:  # timeout
-        key_pressed='no_key'
-        rt=-1.0
+class bodziec():
+    def __init__(self, konfiguracja):
+        self.napis = random.choice(konfiguracja['KOLORY'])['napis']
+        self.kolor = random.choice(konfiguracja['KOLORY'][:-1])['kolor']
+        self.zgodnosc = next(kol for kol in konfiguracja['KOLORY'] if kol['kolor'] == self.kolor)['napis'] == self.napis
 
-    return key_pressed, rt  # return all data collected during trial
+    def wyswietl(self, bodz, zegar, okno):
+        bodz.color = self.kolor
+        bodz.text = self.napis
+        bodz.draw()
+        zegar.reset()
+        okno.flip()
 
 if __name__ == '__main__':
-    PART_ID=''
-    SCREEN_RES=get_screen_res()
     main()

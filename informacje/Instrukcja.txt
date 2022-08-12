@@ -1,0 +1,18 @@
+/bINSTRUKCJA
+Zadanie, które za chwilę wykonasz wymaga od Ciebie pełnego skupienia. Zobaczysz różne nazwy
+kolorów (czerwony, zielony, niebieski, żółty) lub ciąg znaków “@#$%&” wyświetlane w różnych
+kolorach. Twoim zadaniem jest określić kolor wyświetlany.
+Przykładowo, gdy wyświetlany jest bodziec:
+/cNIEBIESKI
+poprawną odpowiedzią jest “czerwony” i kliknięcie w klawisz “c”.
+Dla koloru zielonego – “z”, niebieskiego – “n”, żółtego – ”k”.
+
+W razie chęci wyjścia z badania naciśnij klawisz “esc”.
+
+Badanie składa się z sesji treningowej, w której po udzieleniu odpowiedzi zobaczysz komunikat
+określający jej poprawność. Następnie rozpocznie się sesja eksperymentalna, składająca się z
+trzech części rozdzielonych dwiema przerwami. Długość przerwy jest zależna od Ciebie – aby ją
+zakończyć, naciśnij spację.
+
+Pamiętaj by skupiać swój wzrok na “+”.
+aby przejść dalej naciśnij spację
