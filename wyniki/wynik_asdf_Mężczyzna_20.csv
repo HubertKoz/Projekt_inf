@@ -1,0 +1,8 @@
+Eksperyment,Numer proby,Zgodnosc bodzca,Reakcja,Bodziec,Kolor bodzca,Poprawnosc odpowiedzi,Czas reakcji
+False,1,False,['c'],Żółty,#FF0000,True,2.8936825001146644
+False,2,True,['n'],Niebieski,#0000FF,True,0.83588119992055
+False,3,False,['z'],Niebieski,#00FF00,True,1.497935000108555
+False,4,False,['k'],Niebieski,#FFFF00,True,2.992935299873352
+False,5,True,['c'],Czerwony,#FF0000,True,0.9621556999627501
+False,6,False,['c'],Zielony,#FF0000,True,1.7746264999732375
+False,7,False,['n'],Niebieski,#FF0000,False,0.8813553000800312
