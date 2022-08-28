@@ -1,0 +1,11 @@
+/bPRZYPOMNIENIE
+Zaraz znowu zobaczysz różne nazwy kolorów (czerwony, zielony, niebieski, żółty) lub ciąg znaków
+“@#$%&” wyświetlane w różnych kolorach. Twoim zadaniem ponownie jest określić wyświetlany
+kolor.
+
+Zielony – “z”, czerwony - "c", niebieski – “n”, żółty – ”k”.
+
+W razie chęci wyjścia z badania naciśnij klawisz “esc”.
+
+Pamiętaj by skupiać swój wzrok na “+”.
+aby przejść dalej naciśnij spację
