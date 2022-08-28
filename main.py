@@ -5,18 +5,16 @@ import codecs
 import csv
 import random
 from os.path import join
-from statistics import mean
 import yaml
 from psychopy import visual, event, logging, gui, core
 from misc.screen_misc import get_screen_res, get_frame_rate
-from itertools import combinations_with_replacement, product
 
 ID=''
 ROZDZIELCZOSC = list(get_screen_res().values())
 WYNIKI = []
 
 @atexit.register
-def zapis_wynik():
+def zapisz_wynik():
     with open(join('./wyniki/wynik_' + ID + '.csv'), 'w', encoding='utf-8') as plik:
         zapis = csv.writer(plik)
         zapis.writerows(WYNIKI)
@@ -101,7 +99,7 @@ def main():
     WYNIKI.append(konfiguracja['NAGLOWKI_TABELI_WYNIKOW'])
 
     procedura(okno, konfiguracja)
-    zapisz_wyniki()
+    zapisz_wynik()
     return
 
 def procedura(okno, konfiguracja):
