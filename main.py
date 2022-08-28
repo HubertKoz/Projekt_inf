@@ -49,8 +49,6 @@ def wczytaj_tekst(nazwa_pliku, insert=''):
 
 def pokaz_tekst(tekst, okno, konfiguracja):
     napis = visual.TextStim(win=okno, height=ROZDZIELCZOSC[1]*konfiguracja['ROZMAR_TEKSTU'], wrapWidth=ROZDZIELCZOSC[0])
-    print(type(tekst))
-    print(type(tekst) is list)
     if type(tekst) is list:
         for i, wiersz in enumerate(tekst):
             napis.bold = False
@@ -90,36 +88,40 @@ def main():
     dane = gui.DlgFromDict(dictionary=info, title='Stroop:)')
     if not dane.OK:
         blad('Blad w oknie dialogowym')
+    ID = info['IDENTYFIKATOR'] + '_' + info[u'P\u0141E\u0106'] + '_' + info['WIEK']
 
     konfiguracja = yaml.safe_load(open('config.yaml', encoding='utf-8'))
     okno = visual.Window(size=ROZDZIELCZOSC, fullscr=False, monitor='testMonitor', units='pix',screen=0, color=konfiguracja['KOLOR_TLA'])
     event.Mouse(visible=False, newPos=None, win=okno)
-    zegar = core.Clock()
+    logging.LogFile(join('wyniki', 'log_' + ID + '.log'), level=logging.INFO)
 
-    ID = info['IDENTYFIKATOR'] + '_' + info[u'P\u0141E\u0106'] + '_' + info['WIEK']
-    WYNIKI.append(konfiguracja['NAGLOWKI_TABELI_WYNIKOW'])
-    logging.LogFile(join('wyniki', 'log_' + ID + '.log'), level=logging.INFO)  # errors logging
     ODSWIEZANIE = get_frame_rate(okno)
     logging.info('ODSWIEZANIE: {}'.format(ODSWIEZANIE))
     logging.info('ROZDZIELCZOSC: {}'.format(ROZDZIELCZOSC))
-    procedura(zegar, okno, konfiguracja)
+    WYNIKI.append(konfiguracja['NAGLOWKI_TABELI_WYNIKOW'])
+
+    procedura(okno, konfiguracja)
     zapisz_wyniki()
     return
 
-def procedura(zegar, okno, konfiguracja):
+def procedura(okno, konfiguracja):
     pokaz_tekst(wczytaj_tekst('Instrukcja'), okno, konfiguracja)
+
     for x in range(konfiguracja['LICZBA_POWTORZEN_TRENINGU']):
-        test(zegar, okno, False, konfiguracja)
+        sesja(okno, False, konfiguracja)
     if konfiguracja['LICZBA_POWTORZEN_TRENINGU'] > 0:
         pokaz_tekst(wczytaj_tekst('Przypomnienie'), okno, konfiguracja)
     for y in range(konfiguracja['LICZBA_POWTORZEN_EKSPERYMENTU']):
-        wyjscie(konfiguracja)
-        test(zegar, okno, True, konfiguracja)
+        sesja(okno, True, konfiguracja)
+
     pokaz_tekst(wczytaj_tekst('Koniec'), okno, konfiguracja)
     logging.flush()
     return
 
-def test(zegar, okno, eksperyment, konfiguracja):
+def sesja(okno, eksperyment, konfiguracja):
+    zegar = core.Clock()
+    tekst = visual.TextStim(win=okno, height=ROZDZIELCZOSC[1] * konfiguracja['ROZMAR_BODZCA'])
+
     if eksperyment:
         pokaz_tekst("Eksperyment", okno, konfiguracja)
         proby = konfiguracja['LICZBA_PROB_W_EKSPERYMENCIE']
@@ -129,11 +131,10 @@ def test(zegar, okno, eksperyment, konfiguracja):
         popr1 = visual.Rect(win=okno, fillColor=konfiguracja['KOLOR_PROSTOKATA'], lineColor=konfiguracja['KOLOR_KRAWEDZI_PROSTOKATA'], size=[x * konfiguracja['ROZMIAR_PROSTOKATA'] for x in ROZDZIELCZOSC], lineWidth=3)
         popr2 = visual.TextStim(win=okno, height=ROZDZIELCZOSC[1]*konfiguracja['ROZMAR_TEKSTU'], color=konfiguracja['KOLOR_TEKSTU'])
 
-    tekst = visual.TextStim(win=okno, height=ROZDZIELCZOSC[1] * konfiguracja['ROZMAR_BODZCA'])
     for i in range(proby):
-        wyjscie(konfiguracja)
         zgodnosc, reakcja, slowo, kolor, poprawnosc, czas = proba(tekst, zegar, okno, konfiguracja)
         WYNIKI.append([eksperyment, i+1, zgodnosc, reakcja, slowo, kolor, poprawnosc, czas])
+
         if not eksperyment and poprawnosc:
             popr1.draw()
             popr2.setText(text=konfiguracja['POPRAWNOSC'][1])
@@ -156,12 +157,6 @@ def test(zegar, okno, eksperyment, konfiguracja):
 def proba(tekst, zegar, okno, konfiguracja):
     bodz = bodziec(konfiguracja)
 
-    tekst.color = konfiguracja['KOLOR_PUNKTU_FIKSACJI']
-    tekst.text = konfiguracja['RODZAJ_PUNKTU_FIKSACJI']
-    tekst.draw()
-    okno.flip()
-    core.wait(konfiguracja['CZAS_WYSWIETLANIA_PUNKTU_FIKSACJI'])
-
     bodz.wyswietl(tekst, zegar, okno)
 
     reakcja = []
@@ -172,21 +167,29 @@ def proba(tekst, zegar, okno, konfiguracja):
             break
         reakcja = event.getKeys(keyList=list(element['przycisk'] for element in konfiguracja['KOLORY'][:-1]))
         wyjscie(konfiguracja)
+
     czas = zegar.getTime()
     poprawnosc = [next(kol for kol in konfiguracja['KOLORY'] if kol['kolor'] == bodz.kolor)['przycisk']] == reakcja
     return bodz.zgodnosc, reakcja, bodz.napis, bodz.kolor, poprawnosc, czas
 
 class bodziec():
     def __init__(self, konfiguracja):
-        self.napis = random.choice(konfiguracja['KOLORY'])['napis']
-        self.kolor = random.choice(konfiguracja['KOLORY'][:-1])['kolor']
+        self.rodzaj_punktu = konfiguracja['RODZAJ_PUNKTU_FIKSACJI']
+        self.kolor_punktu = konfiguracja['KOLOR_PUNKTU_FIKSACJI']
+        self.rodzaj_bodzca = random.choice(konfiguracja['KOLORY'])['napis']
+        self.kolor_bodzca = random.choice(konfiguracja['KOLORY'][:-1])['kolor']
         self.zgodnosc = next(kol for kol in konfiguracja['KOLORY'] if kol['kolor'] == self.kolor)['napis'] == self.napis
 
-    def wyswietl(self, bodz, zegar, okno):
-        bodz.color = self.kolor
-        bodz.text = self.napis
-        bodz.draw()
-        zegar.reset()
+    def wyswietl(self, bodziec, zegar, okno):
+        bodziec.color = self.rodzaj_punktu
+        bodziec.text = self.kolor_punktu
+        bodziec.draw()
+        okno.flip()
+        core.wait(konfiguracja['CZAS_WYSWIETLANIA_PUNKTU_FIKSACJI'])
+        bodziec.color = self.kolor
+        bodziec.text = self.napis
+        bodziec.draw()
+        okno.callOnFlip(zegar.reset)
         okno.flip()
 
 if __name__ == '__main__':
