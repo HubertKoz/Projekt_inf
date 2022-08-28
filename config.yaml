@@ -19,6 +19,7 @@ PRZERWA: 1
 ROZMAR_BODZCA: 0.1
 POPRAWNOSC: ['Źle', 'Dobrze']
 NAGLOWKI_TABELI_WYNIKOW: ['Eksperyment', 'Numer proby', 'Zgodnosc bodzca', 'Reakcja', 'Bodziec', 'Kolor bodzca', 'Poprawnosc odpowiedzi', 'Czas reakcji']
+CZESTOSC_ZGODNEGO_BODZCA: 0.25
 KOLORY: [{
   napis: 'Zielony',
   kolor: '#00FF00',

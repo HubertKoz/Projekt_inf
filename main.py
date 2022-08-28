@@ -169,25 +169,31 @@ def proba(tekst, zegar, okno, konfiguracja):
         wyjscie(konfiguracja)
 
     czas = zegar.getTime()
-    poprawnosc = [next(kol for kol in konfiguracja['KOLORY'] if kol['kolor'] == bodz.kolor)['przycisk']] == reakcja
-    return bodz.zgodnosc, reakcja, bodz.napis, bodz.kolor, poprawnosc, czas
+    poprawnosc = [next(kol for kol in konfiguracja['KOLORY'] if kol['kolor'] == bodz.kolor_bodzca)['przycisk']] == reakcja
+    return bodz.zgodnosc, reakcja, bodz.rodzaj_bodzca, bodz.kolor_bodzca, poprawnosc, czas
 
 class bodziec():
     def __init__(self, konfiguracja):
-        self.rodzaj_punktu = konfiguracja['RODZAJ_PUNKTU_FIKSACJI']
         self.kolor_punktu = konfiguracja['KOLOR_PUNKTU_FIKSACJI']
-        self.rodzaj_bodzca = random.choice(konfiguracja['KOLORY'])['napis']
-        self.kolor_bodzca = random.choice(konfiguracja['KOLORY'][:-1])['kolor']
-        self.zgodnosc = next(kol for kol in konfiguracja['KOLORY'] if kol['kolor'] == self.kolor)['napis'] == self.napis
+        self.rodzaj_punktu = konfiguracja['RODZAJ_PUNKTU_FIKSACJI']
+        self.czas_punktu = konfiguracja['CZAS_WYSWIETLANIA_PUNKTU_FIKSACJI']
+
+        self.kolor_bodzca = random.choice([kol['kolor'] for kol in konfiguracja['KOLORY'] if 'kolor' in kol])
+        if random.random() <= konfiguracja['CZESTOSC_ZGODNEGO_BODZCA']:
+            self.rodzaj_bodzca = next(kol for kol in konfiguracja['KOLORY'] if kol['kolor'] == self.kolor_bodzca)['napis']
+            self.zgodnosc = True
+        else:
+            self.rodzaj_bodzca = random.choice([nap['napis'] for nap in konfiguracja['KOLORY'] if 'kolor' not in nap or nap['kolor'] != self.kolor_bodzca])
+            self.zgodnosc = False
 
     def wyswietl(self, bodziec, zegar, okno):
-        bodziec.color = self.rodzaj_punktu
-        bodziec.text = self.kolor_punktu
+        bodziec.color = self.kolor_punktu
+        bodziec.text = self.rodzaj_punktu
         bodziec.draw()
         okno.flip()
-        core.wait(konfiguracja['CZAS_WYSWIETLANIA_PUNKTU_FIKSACJI'])
-        bodziec.color = self.kolor
-        bodziec.text = self.napis
+        core.wait(self.czas_punktu)
+        bodziec.color = self.kolor_bodzca
+        bodziec.text = self.rodzaj_bodzca
         bodziec.draw()
         okno.callOnFlip(zegar.reset)
         okno.flip()
