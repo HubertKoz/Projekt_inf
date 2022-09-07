@@ -1,0 +1,19 @@
+Eksperyment,Numer proby,Zgodnosc bodzca,Reakcja,Bodziec,Kolor bodzca,Poprawnosc odpowiedzi,Czas reakcji
+False,1,False,['n'],Zielony,#0000FF,True,1.229808600153774
+False,2,False,['k'],Zielony,#FFFF00,True,0.47678410029038787
+False,3,False,['c'],Zielony,#FF0000,True,0.6606751000508666
+False,4,False,['n'],Zielony,#0000FF,True,0.6302843000739813
+False,5,False,['z'],@#$%&,#00FF00,True,0.8065339997410774
+False,6,False,['k'],Zielony,#FFFF00,True,0.7437609997577965
+False,7,False,['n'],Niebieski,#00FF00,False,0.8811262999661267
+False,8,True,['c'],Czerwony,#FF0000,True,0.6354902000166476
+False,9,False,['c'],Zielony,#FF0000,True,1.1091138003394008
+False,10,True,['z'],Zielony,#00FF00,True,0.8428091001696885
+False,11,False,['n'],Żółty,#0000FF,True,1.3214392000809312
+False,12,True,['z'],Zielony,#00FF00,True,1.4841056996956468
+False,13,True,['k'],Żółty,#FFFF00,True,0.7602861002087593
+False,14,False,['k'],@#$%&,#FFFF00,True,1.2914649997837842
+False,15,False,['k'],Zielony,#FFFF00,True,0.9931887001730502
+False,16,False,['n'],Czerwony,#00FF00,False,1.1080644996836782
+False,17,True,['c'],Czerwony,#FF0000,True,0.7660182998515666
+False,18,False,['z'],Żółty,#00FF00,True,1.3985799001529813
