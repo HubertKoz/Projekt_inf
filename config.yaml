@@ -1,24 +1,35 @@
 ODSWIEZANIE: 60
+NAGLOWKI_TABELI_WYNIKOW: ['Eksperyment', 'Numer proby', 'Zgodnosc bodzca', 'Reakcja', 'Bodziec', 'Kolor bodzca', 'Poprawnosc odpowiedzi', 'Czas reakcji']
+
+
+#parametry określające długośc eksperymentu
 LICZBA_PROB_W_TRENINGU: 20
 LICZBA_POWTORZEN_TRENINGU: 1
 LICZBA_PROB_W_EKSPERYMENCIE: 75
 LICZBA_POWTORZEN_EKSPERYMENTU: 3
-KOLOR_TLA: '#777777'
-PRZYCISK_KONTYNUACJI: ['space']
-PRZYCISK_WYJSCIA: ['escape']
-ROZMAR_TEKSTU: 0.04
-RODZAJ_PUNKTU_FIKSACJI: '+'
-KOLOR_PUNKTU_FIKSACJI: '#000000'
+
+#parametry estetyczne
 KOLOR_TEKSTU: '#000000'
 KOLOR_KRAWEDZI_PROSTOKATA: '#000000'
 KOLOR_PROSTOKATA: '#777777'
 ROZMIAR_PROSTOKATA: 0.3
-CZAS_WYSWIETLANIA_PUNKTU_FIKSACJI: 1
-CZAS_NA_REAKCJE: 3
-PRZERWA: 1
-ROZMAR_BODZCA: 0.1
+ROZMAR_TEKSTU: 0.04
+KOLOR_TLA: '#777777'
 POPRAWNOSC: ['Źle', 'Dobrze']
-NAGLOWKI_TABELI_WYNIKOW: ['Eksperyment', 'Numer proby', 'Zgodnosc bodzca', 'Reakcja', 'Bodziec', 'Kolor bodzca', 'Poprawnosc odpowiedzi', 'Czas reakcji']
+
+#sterowanie
+PRZYCISK_KONTYNUACJI: ['space']
+PRZYCISK_WYJSCIA: ['escape']
+
+#parametry okoliczności wyświetlania bodżca
+RODZAJ_PUNKTU_FIKSACJI: '+'
+KOLOR_PUNKTU_FIKSACJI: '#000000'
+CZAS_WYSWIETLANIA_PUNKTU_FIKSACJI: 1
+PRZERWA: 1
+
+#parametry bodźca
+ROZMAR_BODZCA: 0.1
+CZAS_NA_REAKCJE: 3
 CZESTOSC_ZGODNEGO_BODZCA: 0.25
 KOLORY: [{
   napis: 'Zielony',
